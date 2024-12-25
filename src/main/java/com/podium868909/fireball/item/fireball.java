@@ -9,17 +9,18 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Unique;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 public class fireball extends Item implements PolymerItem {
+
     public fireball(Settings settings) {
         super(settings);
     }
@@ -35,8 +36,13 @@ public class fireball extends Item implements PolymerItem {
     }
 
     @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity serverPlayerEntity) {
+    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.FIRE_CHARGE;
+    }
+
+    @Override
+    public @Nullable Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return PolymerItem.super.getPolymerItemModel(Items.FIRE_CHARGE.getDefaultStack(), context);
     }
 
     @Override
@@ -57,19 +63,22 @@ public class fireball extends Item implements PolymerItem {
         World world = context.getWorld();
 
         summonFireball(world, user);
-        return super.use(world, user, hand).getResult();
+        return super.use(world, user, hand);
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         summonFireball(world, user);
         return super.use(world, user, hand);
     }
 
     @Unique
     public void summonFireball(World world, PlayerEntity user) {
+
+        ItemStack stackInHand = user.getStackInHand(user.getActiveHand());
+
         if (Fireball.getConfig().fireballCooldownTicks > 0) {
-            user.getItemCooldownManager().set(this, 5);
+            user.getItemCooldownManager().set(stackInHand, 5);
         }
 
         FireballEntity fireballEntity = new FireballEntity(world, user, new Vec3d(0,0,0), Fireball.getConfig().fireballExplosionPower);
@@ -77,6 +86,8 @@ public class fireball extends Item implements PolymerItem {
         fireballEntity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, Fireball.getConfig().fireballSpeed, Fireball.getConfig().fireballDivergence);
         world.spawnEntity(fireballEntity);
 
-        user.getStackInHand(user.getActiveHand()).decrementUnlessCreative(1, user);
+        stackInHand.decrementUnlessCreative(1, user);
     }
+
+
 }

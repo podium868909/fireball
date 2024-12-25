@@ -8,6 +8,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -17,8 +19,10 @@ public class Fireball implements ModInitializer {
 
     private static FireballConfig config;
 
+    public static final Identifier FIREBALL_IDENTIFIER = Identifier.of("fireball", "fireball");
+
     public static final Item FIREBALL =
-            Registry.register(Registries.ITEM, Identifier.of("fireball", "fireball"), new fireball(new Item.Settings()));
+            Registry.register(Registries.ITEM, FIREBALL_IDENTIFIER, new fireball(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, FIREBALL_IDENTIFIER))));
 
     @Override
     public void onInitialize() {
